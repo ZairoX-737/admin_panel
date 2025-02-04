@@ -149,9 +149,6 @@ const tableData = [
 // затычка под виды фильтров
 const eventTypeOptions = ['Все', 'Конференция', 'Семинар', 'Вебинар'];
 
-// Реф для контейнера таблицы
-const tableContainerRef = useRef<HTMLDivElement>(null);
-
 // типизация для поиска строки
 type SearchField = 'id' | 'name' | 'phone' | 'address' | 'event';
 
@@ -188,6 +185,13 @@ export default function AdminPanel() {
 	// стейт для отображения модалок
 	const [modalState, setModalState] = useState<'add' | 'edit' | null>(null);
 
+	// Реф для контейнера таблицы
+	const tableContainerRef = useRef<HTMLDivElement>(null);
+
+	// стейты для поиска строки
+	const [searchField, setSearchField] = useState<SearchField>('id'); // ловит список
+	const [searchQuery, setSearchQuery] = useState(''); // ловит вводимую строку
+
 	// стейт для данных модалок (add/redact)
 	const [formValues, setFormValues] = useState({
 		name: '',
@@ -195,10 +199,6 @@ export default function AdminPanel() {
 		address: '',
 		event: '',
 	});
-
-	// стейты для поиска строки
-	const [searchField, setSearchField] = useState<SearchField>('id'); // ловит список
-	const [searchQuery, setSearchQuery] = useState(''); // ловит вводимую строку
 
 	// Вычисляемые данные: сначала фильтруем по виду мероприятия, затем сортируем по id
 	const filteredData = data.filter(row => {
@@ -247,6 +247,16 @@ export default function AdminPanel() {
 		setFormValues({ name: '', phone: '', address: '', event: '' });
 		setSelectedRowId(null);
 		setModalState(null);
+	};
+
+	const handleDeleteRow = () => {
+		if (selectedRowId === null) return;
+
+		if (window.confirm('Вы уверены, что хотите удалить эту строку?')) {
+			const newData = data.filter(row => row.id !== selectedRowId);
+			setData(newData);
+			setSelectedRowId(null);
+		}
 	};
 
 	// хэндлер клика на строку таблицы
@@ -456,6 +466,7 @@ export default function AdminPanel() {
 						>
 							Добавить новую строку
 						</button>
+
 						<button
 							className='px-1 py-2 max-w-fit bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-colors'
 							onClick={() => {
@@ -467,6 +478,15 @@ export default function AdminPanel() {
 						>
 							Редактировать строку
 						</button>
+
+						<button
+							className='px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors'
+							onClick={handleDeleteRow}
+							disabled={!selectedRowId}
+						>
+							Удалить строку
+						</button>
+
 						<button
 							className='px-1 py-2 max-w-fit bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors'
 							onClick={() => exportToCSV(data, 'export')}
